@@ -1,0 +1,24 @@
+# HAR captures contain login cookies. Never commit.
+inputs/**/*.har
+inputs/**/*.har.zip
+inputs/**/*.cookies
+
+# Credentials
+.env
+.env.*
+*.token
+
+# Build outputs (binaries only; keep source dirs)
+*-pp-cli
+*-pp-mcp
+!*-pp-cli/
+!*-pp-mcp/
+
+# Local SQLite data
+*.db
+*.db-journal
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
