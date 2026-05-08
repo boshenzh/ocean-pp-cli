@@ -1,0 +1,153 @@
+name: webprofile
+description: |
+  UN Comtrade trade-flow data for prospect research. The free public preview
+  endpoint exposes country-pair, HS-code-filtered trade volumes (CIF/FOB value,
+  net weight, quantity) — the data ocean-freight forwarders need to identify
+  which buyers in a target country imported a commodity from China last year.
+  Reference files publish country and HS-code maps so commands can take
+  ISO codes / human-readable HS codes instead of numeric Comtrade codes.
+version: "0.1.0"
+base_url: "https://comtradeapi.un.org"
+spec_source: docs
+cli_description: "Pulls UN Comtrade trade-flow data for ocean-freight prospect research; given country + HS code, returns who imports what from where."
+
+auth:
+  type: none
+  header: ""
+  format: ""
+  env_vars: []
+
+config:
+  format: toml
+  path: "~/.config/webprofile-pp-cli/config.toml"
+
+resources:
+  trade:
+    description: "UN Comtrade trade-flow data"
+    endpoints:
+      preview:
+        method: GET
+        path: "/public/v1/preview/C/A/HS"
+        description: "Fetch annual trade-flow records (no auth, ~500 records max)."
+        params:
+          - name: reporterCode
+            type: int
+            required: true
+            description: "Reporter (importer) country numeric code (e.g. 818 = Egypt, 156 = China, 842 = USA). Use `webprofile-pp-cli reporters` to look up codes."
+          - name: partnerCode
+            type: int
+            description: "Partner (exporter) country code (e.g. 156 = China, 0 = world). Default 0 if omitted."
+            default: 0
+          - name: period
+            type: string
+            description: "Year (e.g. '2023') or comma-separated years ('2021,2022,2023'). Default last full year."
+          - name: cmdCode
+            type: string
+            description: "HS commodity code (2-digit chapter to 6-digit detail; e.g. '8517' for telephones, '6109' for T-shirts). Default 'TOTAL'."
+          - name: flowCode
+            type: string
+            description: "Trade flow: M=imports, X=exports, MIP=re-imports, XIP=re-exports. Default M."
+            default: "M"
+          - name: motCode
+            type: int
+            description: "Mode of transport (0=all). Defaults to all modes."
+            default: 0
+          - name: customsCode
+            type: string
+            description: "Customs procedure (C00=all). Defaults to all."
+            default: "C00"
+          - name: maxRecords
+            type: int
+            description: "Max records to return (preview is capped at ~500)."
+            default: 500
+        body: []
+        response:
+          type: object
+          item: TradeResponse
+        pagination: null
+
+  reporters:
+    description: "Country reference data (numeric Comtrade code, ISO3, name)"
+    endpoints:
+      list:
+        method: GET
+        path: "/files/v1/app/reference/Reporters.json"
+        description: "Fetch the full Comtrade reporter (country) reference file."
+        params: []
+        body: []
+        response:
+          type: object
+          item: ReportersResponse
+        pagination: null
+
+types:
+  TradeResponse:
+    fields:
+      - name: count
+        type: int
+      - name: data
+        type: array
+        item: TradeRow
+      - name: error
+        type: string
+
+  TradeRow:
+    fields:
+      - name: period
+        type: string
+      - name: refYear
+        type: int
+      - name: reporterCode
+        type: int
+      - name: partnerCode
+        type: int
+      - name: cmdCode
+        type: string
+      - name: flowCode
+        type: string
+      - name: cifvalue
+        type: number
+      - name: fobvalue
+        type: number
+      - name: primaryValue
+        type: number
+      - name: netWgt
+        type: number
+      - name: qty
+        type: number
+      - name: qtyUnitAbbr
+        type: string
+
+  ReportersResponse:
+    fields:
+      - name: results
+        type: array
+        item: Reporter
+
+  Reporter:
+    fields:
+      - name: id
+        type: string
+      - name: text
+        type: string
+      - name: reporterCode
+        type: int
+      - name: reporterDesc
+        type: string
+      - name: reporterCodeIsoAlpha2
+        type: string
+      - name: reporterCodeIsoAlpha3
+        type: string
+
+  HSResponse:
+    fields:
+      - name: results
+        type: array
+        item: HSCode
+
+  HSCode:
+    fields:
+      - name: id
+        type: string
+      - name: text
+        type: string

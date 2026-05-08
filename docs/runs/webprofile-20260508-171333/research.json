@@ -1,0 +1,142 @@
+{
+  "api_name": "webprofile",
+  "novelty_score": 6,
+  "alternatives": [],
+  "gaps": [
+    "Comtrade preview is capped at ~500 records and rate-limited; for production research, switch to the paid /data/v1 endpoint (would require auth).",
+    "Hunter.io and generic-website scraping for emails/contacts are not in v0.1; they live in plan #2."
+  ],
+  "patterns": [],
+  "recommendation": "proceed",
+  "researched_at": "2026-05-08T09:26:04Z",
+  "novel_features": [
+    {
+      "name": "Country lookup",
+      "command": "country",
+      "description": "Fuzzy-search Comtrade country reporters by name, ISO2, ISO3, or numeric code.",
+      "rationale": "Local cache of the public Reporters reference avoids 60K-row downloads on every lookup.",
+      "example": "webprofile-pp-cli country Egypt --json",
+      "why_it_matters": "When an agent needs Egypt's numeric Comtrade code without making the user know the magic number 818.",
+      "group": "Reference resolution"
+    },
+    {
+      "name": "HS code search",
+      "command": "hs-search",
+      "description": "Fuzzy-search HS6 commodity codes by code prefix or text description.",
+      "rationale": "Local cache of the H6 reference (~50K rows) makes HS lookups instant after the first run.",
+      "example": "webprofile-pp-cli hs-search telephone --json",
+      "why_it_matters": "When an agent needs the HS code for a commodity name.",
+      "group": "Reference resolution"
+    },
+    {
+      "name": "Annual import volumes",
+      "command": "who-imports",
+      "description": "Annual import volume for a country/HS pair from a specific partner (default China).",
+      "rationale": "Resolves country and partner names to numeric codes locally, queries Comtrade preview, aggregates per-year primaryValue and netWgt.",
+      "example": "webprofile-pp-cli who-imports Egypt 8517 --years 3 --json",
+      "why_it_matters": "When an agent needs concrete trade-flow numbers for a prospect.",
+      "group": "Trade-flow research"
+    },
+    {
+      "name": "Composite prospect-fit score",
+      "command": "fit-score",
+      "description": "0-100 score combining China-share of imports, year-over-year growth, and route coverage.",
+      "rationale": "Three Comtrade calls + a hardcoded covered-lane portfolio produce a single number suitable for ranking prospects.",
+      "example": "webprofile-pp-cli fit-score Egypt 8517 --json",
+      "why_it_matters": "When an agent needs to rank candidate destinations for an outbound campaign.",
+      "group": "Trade-flow research"
+    }
+  ],
+  "novel_features_built": [
+    {
+      "name": "Country lookup",
+      "command": "country",
+      "description": "Fuzzy-search Comtrade country reporters by name, ISO2, ISO3, or numeric code.",
+      "rationale": "Local cache of the public Reporters reference avoids 60K-row downloads on every lookup.",
+      "example": "webprofile-pp-cli country Egypt --json",
+      "why_it_matters": "When an agent needs Egypt's numeric Comtrade code without making the user know the magic number 818.",
+      "group": "Reference resolution"
+    },
+    {
+      "name": "HS code search",
+      "command": "hs-search",
+      "description": "Fuzzy-search HS6 commodity codes by code prefix or text description.",
+      "rationale": "Local cache of the H6 reference (~50K rows) makes HS lookups instant after the first run.",
+      "example": "webprofile-pp-cli hs-search telephone --json",
+      "why_it_matters": "When an agent needs the HS code for a commodity name.",
+      "group": "Reference resolution"
+    },
+    {
+      "name": "Annual import volumes",
+      "command": "who-imports",
+      "description": "Annual import volume for a country/HS pair from a specific partner (default China).",
+      "rationale": "Resolves country and partner names to numeric codes locally, queries Comtrade preview, aggregates per-year primaryValue and netWgt.",
+      "example": "webprofile-pp-cli who-imports Egypt 8517 --years 3 --json",
+      "why_it_matters": "When an agent needs concrete trade-flow numbers for a prospect.",
+      "group": "Trade-flow research"
+    },
+    {
+      "name": "Composite prospect-fit score",
+      "command": "fit-score",
+      "description": "0-100 score combining China-share of imports, year-over-year growth, and route coverage.",
+      "rationale": "Three Comtrade calls + a hardcoded covered-lane portfolio produce a single number suitable for ranking prospects.",
+      "example": "webprofile-pp-cli fit-score Egypt 8517 --json",
+      "why_it_matters": "When an agent needs to rank candidate destinations for an outbound campaign.",
+      "group": "Trade-flow research"
+    }
+  ],
+  "narrative": {
+    "display_name": "UN Comtrade",
+    "headline": "A single-binary CLI for UN Comtrade trade-flow data — converts country names and HS descriptions into numeric codes locally, then pulls per-year import volumes for ocean-freight prospect research.",
+    "value_prop": "Comtrade's official portal requires a paid key for the production API, but the public preview endpoint exposes the same trade-flow shape with a 500-record cap. webprofile-pp-cli wraps it for ocean-freight forwarders: country and HS lookups happen offline (cached reference files), and prospect-fit scoring combines import volume, growth, and your route portfolio into a single number.",
+    "quickstart": [
+      {
+        "command": "webprofile-pp-cli country Egypt",
+        "comment": "Resolve a country name to its Comtrade numeric code (cached after first run)."
+      },
+      {
+        "command": "webprofile-pp-cli hs-search telephone",
+        "comment": "Find the HS code for a commodity description."
+      },
+      {
+        "command": "webprofile-pp-cli who-imports Egypt 8517 --years 3 --json",
+        "comment": "Pull 3 years of Egypt's telephone imports from China."
+      },
+      {
+        "command": "webprofile-pp-cli fit-score Egypt 8517 --json",
+        "comment": "Score this country/HS as a prospect (0-100)."
+      }
+    ],
+    "troubleshoots": [
+      {
+        "symptom": "Empty result for a country/HS pair",
+        "fix": "Comtrade preview is rate-limited and capped at 500 records; reduce --years or check the country/HS via  and ."
+      },
+      {
+        "symptom": "Slow first run",
+        "fix": "The first call fetches and caches the Reporters/HS reference files (~1.6 MB combined); subsequent calls are instant."
+      }
+    ],
+    "when_to_use": "Use this CLI when an agent needs trade-flow data for ocean-freight prospect research. The transcendence commands (country, hs-search, who-imports, fit-score) read from the local cache, so they answer prospecting questions a generic Comtrade scraper cannot.",
+    "recipes": [
+      {
+        "title": "Score a candidate country",
+        "command": "webprofile-pp-cli fit-score Egypt 8517 --json --select 'fit_score,import_from_cn,yoy_growth_pct'",
+        "explanation": "Compact agent-shaped score with the three components that drove the number."
+      },
+      {
+        "title": "Compare imports from China vs world",
+        "command": "webprofile-pp-cli who-imports India 6109 --partner World --years 3",
+        "explanation": "Run with partner=World to see total imports, then partner=China to see just China — gap is the China-share."
+      }
+    ],
+    "trigger_phrases": [
+      "comtrade for egypt",
+      "trade flow research",
+      "who imports from china",
+      "score this prospect",
+      "use webprofile",
+      "run webprofile"
+    ]
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "api_name": "webprofile",
+  "base_url": "https://comtradeapi.un.org",
+  "description": "UN Comtrade trade-flow data for prospect research. The free public preview\nendpoint exposes country-pair, HS-code-filtered trade volumes (CIF/FOB value,\nnet weight, quantity) — the data ocean-freight forwarders need to identify\nwhich buyers in a target country imported a commodity from China last year.\nReference files publish country and HS-code maps so commands can take\nISO codes / human-readable HS codes instead of numeric Comtrade codes.\n",
+  "mcp_ready": "full",
+  "http_transport": "standard",
+  "auth": {
+    "type": "none"
+  },
+  "required_headers": [],
+  "tools": [
+    {
+      "name": "reporters_list",
+      "description": "Fetch the full Comtrade reporter (country) reference file. Returns the ReportersResponse.",
+      "method": "GET",
+      "path": "/files/v1/app/reference/Reporters.json",
+      "no_auth": true,
+      "params": []
+    },
+    {
+      "name": "trade_preview",
+      "description": "Fetch annual trade-flow records (no auth, ~500 records max). Required: reporterCode. Optional: partnerCode (default: 0), period, cmdCode (plus 4 more). Returns the TradeResponse.",
+      "method": "GET",
+      "path": "/public/v1/preview/C/A/HS",
+      "no_auth": true,
+      "params": [
+        {
+          "name": "reporterCode",
+          "type": "int",
+          "location": "query",
+          "description": "Reporter (importer) country numeric code (e.g. 818 = Egypt, 156 = China, 842 = USA). Use `webprofile-pp-cli reporters` to look up codes.",
+          "required": true
+        },
+        {
+          "name": "partnerCode",
+          "type": "int",
+          "location": "query",
+          "description": "Partner (exporter) country code (e.g. 156 = China, 0 = world). Default 0 if omitted."
+        },
+        {
+          "name": "period",
+          "type": "string",
+          "location": "query",
+          "description": "Year (e.g. '2023') or comma-separated years ('2021,2022,2023'). Default last full year."
+        },
+        {
+          "name": "cmdCode",
+          "type": "string",
+          "location": "query",
+          "description": "HS commodity code (2-digit chapter to 6-digit detail; e.g. '8517' for telephones, '6109' for T-shirts). Default 'TOTAL'."
+        },
+        {
+          "name": "flowCode",
+          "type": "string",
+          "location": "query",
+          "description": "Trade flow: M=imports, X=exports, MIP=re-imports, XIP=re-exports. Default M."
+        },
+        {
+          "name": "motCode",
+          "type": "int",
+          "location": "query",
+          "description": "Mode of transport (0=all). Defaults to all modes."
+        },
+        {
+          "name": "customsCode",
+          "type": "string",
+          "location": "query",
+          "description": "Customs procedure (C00=all). Defaults to all."
+        },
+        {
+          "name": "maxRecords",
+          "type": "int",
+          "location": "query",
+          "description": "Max records to return (preview is capped at ~500)."
+        }
+      ]
+    }
+  ]
+}

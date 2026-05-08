@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-08T14:52:36.347024Z",
+  "printing_press_version": "4.0.5",
+  "api_name": "webprofile",
+  "display_name": "Webprofile",
+  "cli_name": "webprofile-pp-cli",
+  "spec_format": "internal",
+  "spec_checksum": "sha256:e5935397ac7112ae2470549b8aa990437f51353e3737c8845d8b2751a5622485",
+  "run_id": "20260508-171333",
+  "description": "Pulls UN Comtrade trade-flow data for ocean-freight prospect research; given country + HS code, returns who imports what from where.",
+  "mcp_binary": "webprofile-pp-mcp",
+  "mcp_tool_count": 2,
+  "mcp_public_tool_count": 2,
+  "mcp_ready": "full",
+  "auth_type": "none",
+  "novel_features": [
+    {
+      "name": "Country lookup",
+      "command": "country",
+      "description": "Fuzzy-search Comtrade country reporters by name, ISO2, ISO3, or numeric code."
+    },
+    {
+      "name": "HS code search",
+      "command": "hs-search",
+      "description": "Fuzzy-search HS6 commodity codes by code prefix or text description."
+    },
+    {
+      "name": "Annual import volumes",
+      "command": "who-imports",
+      "description": "Annual import volume for a country/HS pair from a specific partner (default China)."
+    },
+    {
+      "name": "Composite prospect-fit score",
+      "command": "fit-score",
+      "description": "0-100 score combining China-share of imports, year-over-year growth, and route coverage."
+    }
+  ]
+}

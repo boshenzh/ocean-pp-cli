@@ -1,3 +1,6 @@
 go 1.26.3
 
-use ./freightindex-pp-cli
+use (
+	./freightindex-pp-cli
+	./webprofile-pp-cli
+)
