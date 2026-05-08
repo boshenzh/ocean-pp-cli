@@ -1,0 +1,83 @@
+{
+  "api_name": "schedule",
+  "base_url": "https://wywapi.weiyun001.com",
+  "description": "Container shipping schedule intelligence sourced from Weiyun's public APIs\n(port catalog, carriers per port, fleet routes per carrier) plus per-lane\nschedule data scraped from routePort URLs the user has registered.\n\nThe 4 public APIs at wywapi.weiyun001.com require no auth and return clean\nJSON: port catalog, carrier list per port, service lines per (port,carrier),\nand continent-grouped service maps. They cover lane discovery and prospecting.\n\nPer-week schedule data (ETD dates, transit days, carrier services with\n10-day-window sailings) comes from /routePort URLs the user captures once\nin their browser; the CLI scrapes the HTML on demand. Both layers are\npure HTTP replay — no resident browser, no encryption reverse-engineering.\n",
+  "mcp_ready": "full",
+  "http_transport": "browser-chrome",
+  "auth": {
+    "type": "none"
+  },
+  "required_headers": [],
+  "tools": [
+    {
+      "name": "carrier_services_list",
+      "description": "Continent → service map for a (port, carrier) pair. Required: portCode, carrierCode. Returns the new CarrierServicesResponse.",
+      "method": "POST",
+      "path": "/api/getCarrierServices",
+      "no_auth": true,
+      "params": [
+        {
+          "name": "portCode",
+          "type": "string",
+          "location": "body",
+          "description": "Weiyun port code.",
+          "required": true
+        },
+        {
+          "name": "carrierCode",
+          "type": "string",
+          "location": "body",
+          "description": "Carrier code.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "carriers_by_port",
+      "description": "Carriers (船公司) that depart from the named port. Required: startPortCode. Returns the CarrierListResponse.",
+      "method": "GET",
+      "path": "/api/homePage/getCarriersByStartPort",
+      "no_auth": true,
+      "params": [
+        {
+          "name": "startPortCode",
+          "type": "string",
+          "location": "query",
+          "description": "Weiyun port code, e.g. 'CNNSA' for Nansha. Use `ports` command for the catalog.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "fleet_routes_list",
+      "description": "Service lines (e.g. REX2, BEX, MEX) that a carrier runs out of the given port, grouped by destination region. Required: startPortCode, carrier. Returns the FleetRoutesResponse.",
+      "method": "GET",
+      "path": "/api/homePage/getFleetRoutes",
+      "no_auth": true,
+      "params": [
+        {
+          "name": "startPortCode",
+          "type": "string",
+          "location": "query",
+          "description": "Weiyun port code (e.g. 'CNNSA').",
+          "required": true
+        },
+        {
+          "name": "carrier",
+          "type": "string",
+          "location": "query",
+          "description": "Carrier company code (e.g. 'CMA', 'COSCO', 'PIL').",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "ports_list",
+      "description": "Full list of ~200 ports Weiyun knows about (English/Chinese names, port code, pinyin). Returns the PortListResponse.",
+      "method": "GET",
+      "path": "/api/homePage/getAllShipByRouteStartPorts",
+      "no_auth": true,
+      "params": []
+    }
+  ]
+}

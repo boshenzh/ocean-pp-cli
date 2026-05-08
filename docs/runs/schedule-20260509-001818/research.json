@@ -1,0 +1,172 @@
+{
+  "api_name": "schedule",
+  "novelty_score": 7,
+  "alternatives": [],
+  "gaps": [
+    "Per-vessel CLS (cut-off time) is not in the routePort SSR payload. Briefing required CLS; for v0.1 the next-cls command returns ETD instead. Dedicated cut-off field requires a different page (shipDateDetail) we haven't wrapped yet.",
+    "New lanes not in the seeded 7 require user capture in browser. Adding a routes import command (scan Chrome history) is v0.2."
+  ],
+  "patterns": [],
+  "recommendation": "proceed",
+  "researched_at": "2026-05-08T16:29:47Z",
+  "novel_features": [
+    {
+      "name": "Route registry",
+      "command": "routes list",
+      "description": "List all registered Weiyun lane URLs (alias -\u003e URL).",
+      "rationale": "Local YAML registry, persists across runs.",
+      "example": "schedule-pp-cli routes list --json",
+      "why_it_matters": "When an agent needs to know which lanes the user has captured.",
+      "group": "Registry"
+    },
+    {
+      "name": "Pull schedule HTML",
+      "command": "pull",
+      "description": "Fetch routePort HTML for one or all registered lanes and persist to local SQLite.",
+      "rationale": "Stateless GET + Next.js Server Component JSON extraction; no auth, no encryption reverse-engineering.",
+      "example": "schedule-pp-cli pull --route NS-JEDDAH",
+      "why_it_matters": "When an agent needs the latest weekly sailings for the user's lane portfolio.",
+      "group": "Schedule data"
+    },
+    {
+      "name": "Query lane snapshot",
+      "command": "query",
+      "description": "Read the most recent scraped schedule for a registered lane from local SQLite.",
+      "rationale": "Offline read, instant; no live HTTP.",
+      "example": "schedule-pp-cli query NS-JEDDAH --carrier PIL --carrier COSCO --json",
+      "why_it_matters": "When an agent needs to filter sailings by carrier whitelist.",
+      "group": "Schedule data"
+    },
+    {
+      "name": "Soonest sailing",
+      "command": "next-cls",
+      "description": "Returns the lane's nearest future ETD vessel name + voyage + capacity + flag.",
+      "rationale": "Cross-vessel min-time computation on local data.",
+      "example": "schedule-pp-cli next-cls NS-JEDDAH --json",
+      "why_it_matters": "When an agent needs to answer 'what's the next ship out?' without scanning all rows.",
+      "group": "Schedule transcendence"
+    },
+    {
+      "name": "Carrier comparison",
+      "command": "compare-carriers",
+      "description": "Group lane vessels by ETD with carrier+service context.",
+      "rationale": "Joins vessels and carrier-services from the same scrape into a unified view.",
+      "example": "schedule-pp-cli compare-carriers NS-JEDDAH --json",
+      "why_it_matters": "When an agent needs to see all carriers' sailings on one lane in chronological order.",
+      "group": "Schedule transcendence"
+    }
+  ],
+  "novel_features_built": [
+    {
+      "name": "Route registry",
+      "command": "routes list",
+      "description": "List all registered Weiyun lane URLs (alias -\u003e URL).",
+      "rationale": "Local YAML registry, persists across runs.",
+      "example": "schedule-pp-cli routes list --json",
+      "why_it_matters": "When an agent needs to know which lanes the user has captured.",
+      "group": "Registry"
+    },
+    {
+      "name": "Pull schedule HTML",
+      "command": "pull",
+      "description": "Fetch routePort HTML for one or all registered lanes and persist to local SQLite.",
+      "rationale": "Stateless GET + Next.js Server Component JSON extraction; no auth, no encryption reverse-engineering.",
+      "example": "schedule-pp-cli pull --route NS-JEDDAH",
+      "why_it_matters": "When an agent needs the latest weekly sailings for the user's lane portfolio.",
+      "group": "Schedule data"
+    },
+    {
+      "name": "Query lane snapshot",
+      "command": "query",
+      "description": "Read the most recent scraped schedule for a registered lane from local SQLite.",
+      "rationale": "Offline read, instant; no live HTTP.",
+      "example": "schedule-pp-cli query NS-JEDDAH --carrier PIL --carrier COSCO --json",
+      "why_it_matters": "When an agent needs to filter sailings by carrier whitelist.",
+      "group": "Schedule data"
+    },
+    {
+      "name": "Soonest sailing",
+      "command": "next-cls",
+      "description": "Returns the lane's nearest future ETD vessel name + voyage + capacity + flag.",
+      "rationale": "Cross-vessel min-time computation on local data.",
+      "example": "schedule-pp-cli next-cls NS-JEDDAH --json",
+      "why_it_matters": "When an agent needs to answer 'what's the next ship out?' without scanning all rows.",
+      "group": "Schedule transcendence"
+    },
+    {
+      "name": "Carrier comparison",
+      "command": "compare-carriers",
+      "description": "Group lane vessels by ETD with carrier+service context.",
+      "rationale": "Joins vessels and carrier-services from the same scrape into a unified view.",
+      "example": "schedule-pp-cli compare-carriers NS-JEDDAH --json",
+      "why_it_matters": "When an agent needs to see all carriers' sailings on one lane in chronological order.",
+      "group": "Schedule transcendence"
+    }
+  ],
+  "narrative": {
+    "display_name": "Weiyun Schedule",
+    "headline": "A single-binary CLI for ocean-freight schedules — pulls Weiyun's public port/carrier/fleet APIs and scrapes per-lane sailings from registered routePort URLs.",
+    "value_prop": "Carrier discovery (which carriers serve a port, what services they run) goes through Weiyun's clean public APIs; per-week sailings (vessel name, voyage, ETD, capacity, flag) come from /routePort URLs the user captures once in their browser. Both layers are pure HTTP, no encryption reverse-engineering, no resident browser.",
+    "quickstart": [
+      {
+        "command": "schedule-pp-cli ports --json",
+        "comment": "List all ~200 ports Weiyun knows about."
+      },
+      {
+        "command": "schedule-pp-cli carriers --start-port-code CNNSA --json",
+        "comment": "List carriers serving Nansha."
+      },
+      {
+        "command": "schedule-pp-cli routes list --json",
+        "comment": "View registered lanes (auto-seeds 7 representative routes on first run)."
+      },
+      {
+        "command": "schedule-pp-cli pull --route NS-JEDDAH --json",
+        "comment": "Fetch latest schedule for that lane."
+      },
+      {
+        "command": "schedule-pp-cli next-cls NS-JEDDAH --json",
+        "comment": "Soonest future sailing on that lane."
+      },
+      {
+        "command": "schedule-pp-cli compare-carriers NS-JEDDAH --json",
+        "comment": "All carriers' sailings on that lane in ETD order."
+      }
+    ],
+    "troubleshoots": [
+      {
+        "symptom": "'route X not in registry' error",
+        "fix": "Capture the routePort URL once in your browser, then run: schedule-pp-cli routes add X '\u003cpaste URL\u003e' --pol POL --pod POD"
+      },
+      {
+        "symptom": "'no scraped data for X yet' when running query/next-cls",
+        "fix": "Run schedule-pp-cli pull --route X first to populate the local store."
+      },
+      {
+        "symptom": "Carrier-services or vessels list looks short",
+        "fix": "Some lanes have '10日内无计划开航' status — Weiyun has no published sailings in the 10-day window. Check schedule-pp-cli compare-carriers to confirm."
+      }
+    ],
+    "when_to_use": "Use this CLI when an agent needs ocean-freight schedule data for a forwarder/NVOCC/BCO. The API layer (ports, carriers, fleet-routes, carrier-services) supports lane discovery; the registry layer (pull, query, next-cls, compare-carriers) supports daily 08:30 schedule briefings.",
+    "recipes": [
+      {
+        "title": "Daily 08:30 lane refresh + briefing",
+        "command": "schedule-pp-cli pull \u0026\u0026 schedule-pp-cli compare-carriers NS-JEDDAH --json --select 'name,vessels_by_etd,carrier_services'",
+        "explanation": "Pull all registered lanes, then render NS-JEDDAH with --select to keep agent payload small."
+      },
+      {
+        "title": "Find Maersk service from Nansha to Mediterranean",
+        "command": "schedule-pp-cli fleet-routes --start-port-code CNNSA --carrier MAERSK --json",
+        "explanation": "Pure API; no scrape needed for service discovery."
+      }
+    ],
+    "trigger_phrases": [
+      "next sailing from nansha",
+      "carrier list for shenzhen",
+      "weiyun schedule",
+      "ship schedule for jeddah",
+      "use schedule",
+      "run schedule"
+    ]
+  }
+}

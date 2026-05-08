@@ -2,5 +2,6 @@ go 1.26.3
 
 use (
 	./freightindex-pp-cli
+	./schedule-pp-cli
 	./webprofile-pp-cli
 )

@@ -1,0 +1,51 @@
+version: 2
+project_name: schedule-pp-cli
+changelog:
+  disable: true
+builds:
+  - id: schedule-pp-cli
+    main: ./cmd/schedule-pp-cli
+    binary: schedule-pp-cli
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X schedule-pp-cli/internal/cli.version={{ .Version }}
+    targets:
+      - darwin_amd64
+      - darwin_arm64
+      - linux_amd64
+      - linux_arm64
+      - windows_amd64
+      - windows_arm64
+  - id: schedule-pp-mcp
+    main: ./cmd/schedule-pp-mcp
+    binary: schedule-pp-mcp
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+    targets:
+      - darwin_amd64
+      - darwin_arm64
+      - linux_amd64
+      - linux_arm64
+      - windows_amd64
+      - windows_arm64
+archives:
+  - formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+checksum:
+  name_template: checksums.txt
+brews:
+  - name: schedule-pp-cli
+    repository:
+      owner: boshenzh
+      name: homebrew-tap
+    homepage: "https://github.com/boshenzh/schedule-pp-cli"
+    description: "Discovers carriers, fleet routes, and weekly sailings for ocean-freight forwarders; combines Weiyun's public..."
+    install: |
+      bin.install "schedule-pp-cli"
+      bin.install "schedule-pp-mcp"

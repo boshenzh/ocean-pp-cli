@@ -1,0 +1,227 @@
+name: schedule
+description: |
+  Container shipping schedule intelligence sourced from Weiyun's public APIs
+  (port catalog, carriers per port, fleet routes per carrier) plus per-lane
+  schedule data scraped from routePort URLs the user has registered.
+
+  The 4 public APIs at wywapi.weiyun001.com require no auth and return clean
+  JSON: port catalog, carrier list per port, service lines per (port,carrier),
+  and continent-grouped service maps. They cover lane discovery and prospecting.
+
+  Per-week schedule data (ETD dates, transit days, carrier services with
+  10-day-window sailings) comes from /routePort URLs the user captures once
+  in their browser; the CLI scrapes the HTML on demand. Both layers are
+  pure HTTP replay — no resident browser, no encryption reverse-engineering.
+version: "0.1.0"
+base_url: "https://wywapi.weiyun001.com"
+spec_source: sniffed
+cli_description: "Discovers carriers, fleet routes, and weekly sailings for ocean-freight forwarders; combines Weiyun's public port/carrier APIs with user-registered routePort URLs."
+
+auth:
+  type: none
+  header: ""
+  format: ""
+  env_vars: []
+
+config:
+  format: toml
+  path: "~/.config/schedule-pp-cli/config.toml"
+
+resources:
+  ports:
+    description: "Container ship start-port catalog"
+    endpoints:
+      list:
+        method: GET
+        path: "/api/homePage/getAllShipByRouteStartPorts"
+        description: "Full list of ~200 ports Weiyun knows about (English/Chinese names, port code, pinyin)."
+        params: []
+        body: []
+        response:
+          type: object
+          item: PortListResponse
+        pagination: null
+
+  carriers:
+    description: "Carriers serving a given start port"
+    endpoints:
+      by_port:
+        method: GET
+        path: "/api/homePage/getCarriersByStartPort"
+        description: "Carriers (船公司) that depart from the named port."
+        params:
+          - name: startPortCode
+            type: string
+            required: true
+            description: "Weiyun port code, e.g. 'CNNSA' for Nansha. Use `ports` command for the catalog."
+        body: []
+        response:
+          type: object
+          item: CarrierListResponse
+        pagination: null
+
+  fleet_routes:
+    description: "Fleet routes (services) per carrier from a given port"
+    endpoints:
+      list:
+        method: GET
+        path: "/api/homePage/getFleetRoutes"
+        description: "Service lines (e.g. REX2, BEX, MEX) that a carrier runs out of the given port, grouped by destination region."
+        params:
+          - name: startPortCode
+            type: string
+            required: true
+            description: "Weiyun port code (e.g. 'CNNSA')."
+          - name: carrier
+            type: string
+            required: true
+            description: "Carrier company code (e.g. 'CMA', 'COSCO', 'PIL')."
+        body: []
+        response:
+          type: object
+          item: FleetRoutesResponse
+        pagination: null
+
+  carrier_services:
+    description: "Services (continent-grouped) a carrier offers from a port"
+    endpoints:
+      list:
+        method: POST
+        path: "/api/getCarrierServices"
+        description: "Continent → service map for a (port, carrier) pair."
+        body:
+          - name: portCode
+            type: string
+            required: true
+            description: "Weiyun port code."
+          - name: carrierCode
+            type: string
+            required: true
+            description: "Carrier code."
+        response:
+          type: object
+          item: CarrierServicesResponse
+        pagination: null
+
+types:
+  PortListResponse:
+    fields:
+      - name: success
+        type: bool
+      - name: code
+        type: int
+      - name: result
+        type: array
+        item: CountryPortGroup
+
+  CountryPortGroup:
+    fields:
+      - name: countryCnName
+        type: string
+      - name: startPorts
+        type: array
+        item: Port
+
+  Port:
+    fields:
+      - name: id
+        type: int
+      - name: code
+        type: string
+      - name: name
+        type: string
+      - name: enName
+        type: string
+      - name: regionCode
+        type: string
+      - name: regionEnName
+        type: string
+      - name: nameFormatter
+        type: string
+      - name: pinyinSearch
+        type: string
+
+  CarrierListResponse:
+    fields:
+      - name: success
+        type: bool
+      - name: code
+        type: int
+      - name: result
+        type: array
+        item: Carrier
+
+  Carrier:
+    fields:
+      - name: companyCode
+        type: string
+      - name: companyEnName
+        type: string
+      - name: companyShort
+        type: string
+      - name: pinyinSearch
+        type: string
+
+  FleetRoutesResponse:
+    fields:
+      - name: success
+        type: bool
+      - name: code
+        type: int
+      - name: result
+        type: array
+        item: RegionGroup
+
+  RegionGroup:
+    fields:
+      - name: name
+        type: string
+      - name: sort
+        type: int
+      - name: fleetRoutes
+        type: array
+        item: FleetRoute
+
+  FleetRoute:
+    fields:
+      - name: fleetId
+        type: int
+      - name: fleetName
+        type: string
+      - name: routeCode
+        type: string
+      - name: pinyinSearch
+        type: string
+
+  CarrierServicesResponse:
+    fields:
+      - name: success
+        type: bool
+      - name: code
+        type: int
+      - name: result
+        type: array
+        item: ContinentServices
+
+  ContinentServices:
+    fields:
+      - name: continentID
+        type: int
+      - name: continentCnName
+        type: string
+      - name: continentEnName
+        type: string
+      - name: services
+        type: array
+        item: Service
+
+  Service:
+    fields:
+      - name: serviceID
+        type: int
+      - name: serviceCnName
+        type: string
+      - name: serviceEnName
+        type: string
+      - name: pinyinSearch
+        type: string

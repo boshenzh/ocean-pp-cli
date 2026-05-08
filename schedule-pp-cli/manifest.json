@@ -1,0 +1,27 @@
+{
+  "manifest_version": "0.3",
+  "name": "schedule-pp-mcp",
+  "display_name": "Schedule",
+  "version": "4.0.5",
+  "description": "Discovers carriers, fleet routes, and weekly sailings for ocean-freight forwarders; combines Weiyun's public port/carrier APIs with user-registered routePort URLs.",
+  "author": {
+    "name": "CLI Printing Press"
+  },
+  "license": "Apache-2.0",
+  "server": {
+    "type": "binary",
+    "entry_point": "bin/schedule-pp-mcp",
+    "mcp_config": {
+      "command": "${__dirname}/bin/schedule-pp-mcp",
+      "args": []
+    }
+  },
+  "compatibility": {
+    "claude_desktop": ">=1.0.0",
+    "platforms": [
+      "darwin",
+      "linux",
+      "win32"
+    ]
+  }
+}
