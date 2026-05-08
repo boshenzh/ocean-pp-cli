@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-08T08:54:57.878046Z",
+  "printing_press_version": "4.0.5",
+  "api_name": "freightindex",
+  "display_name": "Freightindex",
+  "cli_name": "freightindex-pp-cli",
+  "spec_format": "internal",
+  "spec_checksum": "sha256:7dfee0f6b99850cf4fe63252497a97032c167bfc131657b4e7541ee5c9bc0a11",
+  "run_id": "20260508-151751",
+  "description": "Pulls the weekly Shanghai Containerized Freight Index, persists snapshots locally, and renders lane-filtered digests for ocean-freight forwarders.",
+  "mcp_binary": "freightindex-pp-mcp",
+  "mcp_tool_count": 1,
+  "mcp_public_tool_count": 1,
+  "mcp_ready": "full",
+  "auth_type": "none",
+  "novel_features": [
+    {
+      "name": "Lane-filtered digest",
+      "command": "digest",
+      "description": "Render the latest weekly snapshot as JSON or Markdown; optional --lane \u003cfragment\u003e repeatable filter narrows to the lanes the user cares about. No defaults — works for any forwarder regardless of lane portfolio."
+    },
+    {
+      "name": "Comprehensive-index contribution",
+      "command": "contribution",
+      "description": "Decomposes the headline SCFI move into per-lane contributions by multiplying each lane's weighting percent by its percent change."
+    },
+    {
+      "name": "Lane-vs-comprehensive divergence",
+      "command": "divergence",
+      "description": "Per-week spread between a lane's percent change and the comprehensive index over the last N weeks, with cumulative drift."
+    },
+    {
+      "name": "Compare with in-house rate sheet (stub)",
+      "command": "compare-with-rate-store",
+      "description": "Joins the user's quote workbook (xlsx) against the latest SCFI per lane and tags every row High/Low/Par with the USD/TEU gap. v0.1 ships a stub; full implementation lands when the rate-store reader does."
+    },
+    {
+      "name": "Null-lane gap report",
+      "command": "nulls",
+      "description": "Lists weeks where SSE returned null for one or more lanes — a service quirk that breaks naive scripts."
+    },
+    {
+      "name": "Lane volatility ranking",
+      "command": "volatility",
+      "description": "Per-lane standard deviation / mean / min / max of weekly percent change over the last N weeks; ranks the most volatile lanes first."
+    },
+    {
+      "name": "Unit normalization",
+      "command": "normalize",
+      "description": "Converts every lane to a single unit (USD/TEU or USD/FEU) so cross-lane comparisons aren't apples-to-oranges."
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "api_name": "freightindex",
+  "base_url": "https://en.sse.net.cn",
+  "description": "Shanghai Containerized Freight Index (SCFI) — weekly container shipping rate\nbenchmark from Shanghai for major lanes, published Fridays by the Shanghai\nShipping Exchange. No official API; data is fetched from the JSON XHR endpoint\nthe public web page calls. Covers Comprehensive Index plus 15 lane indices\nincluding Mediterranean, Persian Gulf/Red Sea, India/Pakistan, USWC, USEC,\nEurope, Australia, Japan, South America, and West/East Africa.\n",
+  "mcp_ready": "full",
+  "http_transport": "browser-chrome",
+  "auth": {
+    "type": "none"
+  },
+  "required_headers": [],
+  "tools": [
+    {
+      "name": "scfi_current",
+      "description": "Fetch the current weekly SCFI (Comprehensive Index plus all 15 lane sub-indices). Required: indexName (default: scfi). Returns the SCFIResponse.",
+      "method": "GET",
+      "path": "/currentIndex",
+      "no_auth": true,
+      "params": [
+        {
+          "name": "indexName",
+          "type": "string",
+          "location": "query",
+          "description": "Index identifier. Always 'scfi' for SCFI; the endpoint also serves CCFI ('ccfi') and other SSE indices.",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

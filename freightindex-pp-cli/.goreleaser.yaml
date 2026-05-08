@@ -1,0 +1,51 @@
+version: 2
+project_name: freightindex-pp-cli
+changelog:
+  disable: true
+builds:
+  - id: freightindex-pp-cli
+    main: ./cmd/freightindex-pp-cli
+    binary: freightindex-pp-cli
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X freightindex-pp-cli/internal/cli.version={{ .Version }}
+    targets:
+      - darwin_amd64
+      - darwin_arm64
+      - linux_amd64
+      - linux_arm64
+      - windows_amd64
+      - windows_arm64
+  - id: freightindex-pp-mcp
+    main: ./cmd/freightindex-pp-mcp
+    binary: freightindex-pp-mcp
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+    targets:
+      - darwin_amd64
+      - darwin_arm64
+      - linux_amd64
+      - linux_arm64
+      - windows_amd64
+      - windows_arm64
+archives:
+  - formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+checksum:
+  name_template: checksums.txt
+brews:
+  - name: freightindex-pp-cli
+    repository:
+      owner: boshenzh
+      name: homebrew-tap
+    homepage: "https://github.com/boshenzh/freightindex-pp-cli"
+    description: "A single-binary CLI for the Shanghai Containerized Freight Index — pulls the weekly index, persists snapshots, and..."
+    install: |
+      bin.install "freightindex-pp-cli"
+      bin.install "freightindex-pp-mcp"

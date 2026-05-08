@@ -1,0 +1,8 @@
+{
+  "dir": "/Users/boshen/printing-press/.runstate/projects-9dda55b5/runs/20260508-151751/working/freightindex-pp-cli",
+  "workflows": null,
+  "verdict": "workflow-pass",
+  "issues": [
+    "no workflow manifest found, skipping"
+  ]
+}

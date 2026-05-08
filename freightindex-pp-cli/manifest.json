@@ -1,0 +1,27 @@
+{
+  "manifest_version": "0.3",
+  "name": "freightindex-pp-mcp",
+  "display_name": "Freightindex",
+  "version": "4.0.5",
+  "description": "Pulls the weekly Shanghai Containerized Freight Index, persists snapshots locally, and renders lane-filtered digests for ocean-freight forwarders.",
+  "author": {
+    "name": "CLI Printing Press"
+  },
+  "license": "Apache-2.0",
+  "server": {
+    "type": "binary",
+    "entry_point": "bin/freightindex-pp-mcp",
+    "mcp_config": {
+      "command": "${__dirname}/bin/freightindex-pp-mcp",
+      "args": []
+    }
+  },
+  "compatibility": {
+    "claude_desktop": ">=1.0.0",
+    "platforms": [
+      "darwin",
+      "linux",
+      "win32"
+    ]
+  }
+}

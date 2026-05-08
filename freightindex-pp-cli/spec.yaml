@@ -1,0 +1,106 @@
+name: freightindex
+description: |
+  Shanghai Containerized Freight Index (SCFI) — weekly container shipping rate
+  benchmark from Shanghai for major lanes, published Fridays by the Shanghai
+  Shipping Exchange. No official API; data is fetched from the JSON XHR endpoint
+  the public web page calls. Covers Comprehensive Index plus 15 lane indices
+  including Mediterranean, Persian Gulf/Red Sea, India/Pakistan, USWC, USEC,
+  Europe, Australia, Japan, South America, and West/East Africa.
+version: "0.1.0"
+base_url: "https://en.sse.net.cn"
+spec_source: sniffed
+cli_description: "Pulls the weekly Shanghai Containerized Freight Index, persists snapshots locally, and renders lane-filtered digests for ocean-freight forwarders."
+
+auth:
+  type: none
+  header: ""
+  format: ""
+  env_vars: []
+
+config:
+  format: toml
+  path: "~/.config/freightindex-pp-cli/config.toml"
+
+resources:
+  scfi:
+    description: "Shanghai Containerized Freight Index (current week and weekly snapshots)"
+    endpoints:
+      current:
+        method: GET
+        path: "/currentIndex"
+        description: "Fetch the current weekly SCFI (Comprehensive Index plus all 15 lane sub-indices)."
+        params:
+          - name: indexName
+            type: string
+            required: true
+            description: "Index identifier. Always 'scfi' for SCFI; the endpoint also serves CCFI ('ccfi') and other SSE indices."
+            default: "scfi"
+        body: []
+        response:
+          type: object
+          item: SCFIResponse
+        pagination: null
+
+types:
+  SCFIResponse:
+    fields:
+      - name: data
+        type: object
+        item: SCFIData
+        description: "Wrapper envelope for the index payload."
+
+  SCFIData:
+    fields:
+      - name: currentDate
+        type: string
+        description: "ISO date (YYYY-MM-DD) the index was published."
+      - name: lastDate
+        type: string
+        description: "ISO date of the previous week's index."
+      - name: lineDataList
+        type: array
+        item: SCFILine
+        description: "One row per lane — Comprehensive Index plus 15 sub-lane rates."
+
+  SCFILine:
+    fields:
+      - name: properties
+        type: object
+        item: SCFIProperties
+        description: "Lane metadata (name, unit, weighting)."
+      - name: currentContent
+        type: number
+        description: "Current week index value (USD/TEU or USD/FEU). May be null when a lane is not published in a given week."
+      - name: lastContent
+        type: number
+        description: "Previous week index value."
+      - name: absolute
+        type: number
+        description: "Absolute change vs last week (currentContent - lastContent)."
+      - name: percentage
+        type: number
+        description: "Percent change vs last week."
+      - name: dataItemTypeName
+        type: string
+        description: "Internal SSE classifier (typically 'SCFI_T')."
+
+  SCFIProperties:
+    fields:
+      - name: lineName_EN
+        type: string
+        description: "Lane name in English (e.g., 'Comprehensive Index', 'Mediterranean (Base port)', 'Persian Gulf and Red Sea (Dubai)')."
+      - name: lineName_ZH
+        type: string
+        description: "Lane name in Simplified Chinese."
+      - name: unit_EN
+        type: string
+        description: "Pricing unit in English ('USD/TEU' or 'USD/FEU'). Empty for the Comprehensive Index."
+      - name: unit_ZH
+        type: string
+        description: "Pricing unit in Simplified Chinese."
+      - name: weighting_EN
+        type: string
+        description: "Index weighting as a percent string (e.g., '20.0%'). Empty for the Comprehensive Index."
+      - name: weighting_ZH
+        type: string
+        description: "Index weighting in Simplified Chinese."
