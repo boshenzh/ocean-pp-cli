@@ -13,7 +13,7 @@ metadata:
     install:
       - kind: go
         bins: [webprofile-pp-cli]
-        module: github.com/mvanhorn/printing-press-library/library/other/webprofile/cmd/webprofile-pp-cli
+        module: github.com/boshenzh/ocean-pp-cli/webprofile-pp-cli/cmd/webprofile-pp-cli
 ---
 
 # UN Comtrade — Printing Press CLI
@@ -24,7 +24,7 @@ This skill drives the `webprofile-pp-cli` binary. **You must verify the CLI is i
 
 1. Install via the Printing Press installer:
    ```bash
-   npx -y @mvanhorn/printing-press install webprofile --cli-only
+   go install github.com/boshenzh/ocean-pp-cli/webprofile-pp-cli/cmd/webprofile-pp-cli@latest
    ```
 2. Verify: `webprofile-pp-cli --version`
 3. Ensure `$GOPATH/bin` (or `$HOME/go/bin`) is on `$PATH`.
@@ -32,7 +32,7 @@ This skill drives the `webprofile-pp-cli` binary. **You must verify the CLI is i
 If the `npx` install fails (no Node, offline, etc.), fall back to a direct Go install (requires Go 1.26.3 or newer):
 
 ```bash
-go install github.com/mvanhorn/printing-press-library/library/other/webprofile/cmd/webprofile-pp-cli@latest
+go install github.com/boshenzh/ocean-pp-cli/webprofile-pp-cli/cmd/webprofile-pp-cli@latest
 ```
 
 If `--version` reports "command not found" after install, the install step did not put the binary on `$PATH`. Do not proceed with skill commands until verification succeeds.
@@ -220,7 +220,7 @@ Parse `$ARGUMENTS`:
 
 1. Install the MCP server:
    ```bash
-   go install github.com/mvanhorn/printing-press-library/library/other/webprofile/cmd/webprofile-pp-mcp@latest
+   go install github.com/boshenzh/ocean-pp-cli/webprofile-pp-cli/cmd/webprofile-pp-mcp@latest
    ```
 2. Register with Claude Code:
    ```bash

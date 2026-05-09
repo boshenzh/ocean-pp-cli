@@ -254,6 +254,49 @@ Source: `https://wywapi.weiyun001.com/api/` (port/carrier APIs) and `https://www
 
 `bldata-pp-cli` (52WMB bills-of-lading mining) — pending the user's 7-day trial registration. Same pattern as `schedule`: probe for public APIs first, fall back to URL registry + HTML scrape.
 
+## For Agents
+
+Each CLI ships three layers of agent support — pick whichever fits your host.
+
+### Layer 1: `--agent` flag (lowest)
+
+Every command accepts `--agent`, which sets `--json --compact --no-input --no-color --yes`. An agent that can spawn shell commands needs nothing else:
+
+```bash
+webprofile-pp-cli fit-score Egypt 8517 --agent
+schedule-pp-cli next-cls NS-JEDDAH --agent
+freightindex-pp-cli digest --lane 'Persian Gulf' --agent
+```
+
+### Layer 2: SKILL.md (markdown)
+
+Each module ships a `SKILL.md` with trigger phrases, command recipes, output schemas, and error codes. Hosts that read markdown skills (Claude Code, OpenClaw, others) can be pointed at this repo as a plugin:
+
+```bash
+# OpenClaw — install the whole repo as a plugin (path install)
+openclaw plugins install ~/Projects/ocean-pp-cli
+
+# Claude Code — load skills from a directory
+claude --plugin-dir ~/Projects/ocean-pp-cli
+```
+
+The repo root carries `.claude-plugin/plugin.json` (Claude-compatible) and `skills/pp-{freightindex,schedule,webprofile}/SKILL.md` symlinks for plugin auto-discovery.
+
+### Layer 3: MCP servers (typed RPC)
+
+Each CLI ships a paired `<cli>-pp-mcp` binary that exposes the same commands as MCP tools over stdio:
+
+```bash
+go install github.com/boshenzh/ocean-pp-cli/freightindex-pp-cli/cmd/freightindex-pp-mcp@latest
+go install github.com/boshenzh/ocean-pp-cli/schedule-pp-cli/cmd/schedule-pp-mcp@latest
+go install github.com/boshenzh/ocean-pp-cli/webprofile-pp-cli/cmd/webprofile-pp-mcp@latest
+
+# Register with Claude Code
+claude mcp add freightindex-pp-mcp -- freightindex-pp-mcp
+claude mcp add schedule-pp-mcp     -- schedule-pp-mcp
+claude mcp add webprofile-pp-mcp   -- webprofile-pp-mcp
+```
+
 ## Documentation
 
 Each CLI ships its own README and SKILL.md inside its module directory:
@@ -263,8 +306,6 @@ freightindex-pp-cli/README.md   freightindex-pp-cli/SKILL.md
 webprofile-pp-cli/README.md     webprofile-pp-cli/SKILL.md
 schedule-pp-cli/README.md       schedule-pp-cli/SKILL.md
 ```
-
-The SKILL.md is consumed by Claude Code and other agent hosts; it lists trigger phrases, recipes, and troubleshooting in a structured form. The README is the human-facing equivalent.
 
 Per-run research artifacts (briefs, absorb manifests, scorecard reports, dogfood acceptance markers) are archived under `docs/runs/<cli>-<run-id>/`:
 

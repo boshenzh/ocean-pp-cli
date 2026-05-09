@@ -1,0 +1,9 @@
+{
+  "name": "ocean-pp-cli",
+  "version": "0.1.0",
+  "description": "Three CLIs for ocean-freight forwarders: SCFI weekly index, Weiyun ship schedules, and UN Comtrade prospect research.",
+  "author": "boshenzh",
+  "license": "Apache-2.0",
+  "repository": "boshenzh/ocean-pp-cli",
+  "homepage": "https://github.com/boshenzh/ocean-pp-cli"
+}

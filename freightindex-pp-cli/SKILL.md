@@ -13,7 +13,7 @@ metadata:
     install:
       - kind: go
         bins: [freightindex-pp-cli]
-        module: github.com/mvanhorn/printing-press-library/library/other/freightindex/cmd/freightindex-pp-cli
+        module: github.com/boshenzh/ocean-pp-cli/freightindex-pp-cli/cmd/freightindex-pp-cli
 ---
 
 # Shanghai Containerized Freight Index — Printing Press CLI
@@ -24,7 +24,7 @@ This skill drives the `freightindex-pp-cli` binary. **You must verify the CLI is
 
 1. Install via the Printing Press installer:
    ```bash
-   npx -y @mvanhorn/printing-press install freightindex --cli-only
+   go install github.com/boshenzh/ocean-pp-cli/freightindex-pp-cli/cmd/freightindex-pp-cli@latest
    ```
 2. Verify: `freightindex-pp-cli --version`
 3. Ensure `$GOPATH/bin` (or `$HOME/go/bin`) is on `$PATH`.
@@ -32,7 +32,7 @@ This skill drives the `freightindex-pp-cli` binary. **You must verify the CLI is
 If the `npx` install fails (no Node, offline, etc.), fall back to a direct Go install (requires Go 1.26.3 or newer):
 
 ```bash
-go install github.com/mvanhorn/printing-press-library/library/other/freightindex/cmd/freightindex-pp-cli@latest
+go install github.com/boshenzh/ocean-pp-cli/freightindex-pp-cli/cmd/freightindex-pp-cli@latest
 ```
 
 If `--version` reports "command not found" after install, the install step did not put the binary on `$PATH`. Do not proceed with skill commands until verification succeeds.
@@ -267,7 +267,7 @@ Parse `$ARGUMENTS`:
 
 1. Install the MCP server:
    ```bash
-   go install github.com/mvanhorn/printing-press-library/library/other/freightindex/cmd/freightindex-pp-mcp@latest
+   go install github.com/boshenzh/ocean-pp-cli/freightindex-pp-cli/cmd/freightindex-pp-mcp@latest
    ```
 2. Register with Claude Code:
    ```bash

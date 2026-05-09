@@ -1,0 +1,1 @@
+../../webprofile-pp-cli/SKILL.md

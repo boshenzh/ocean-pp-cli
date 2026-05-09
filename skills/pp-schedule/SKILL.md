@@ -1,0 +1,1 @@
+../../schedule-pp-cli/SKILL.md
