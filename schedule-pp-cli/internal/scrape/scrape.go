@@ -152,9 +152,3 @@ func FilterCarriers(carriers []CarrierService, whitelist []string) []CarrierServ
 	return out
 }
 
-// DefaultCarrierWhitelist is the user's preferred-carrier list from the briefing.
-var DefaultCarrierWhitelist = []string{
-	"PIL", "COSCO", "OOCL", "KMTC", "CMA", "WHL", "CUL", "EMC", "HPL",
-	"RCL", "TSL", "SLG", "ESL", "WAN HAI", "MAERSK", "MSC", "ONE",
-	"BLPL", "GFSL", "YML", "ZGSH", "HMM",
-}

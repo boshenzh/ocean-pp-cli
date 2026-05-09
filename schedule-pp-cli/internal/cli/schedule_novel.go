@@ -32,6 +32,24 @@ func openLaneStore(ctx context.Context) (*store.Store, error) {
 
 // ---------- routes group ----------
 
+// emptyRegistryHint is printed to stderr by commands that read the registry
+// when it is empty. It tells the user how to populate it: either with the
+// bundled example lanes (a one-liner) or by registering their own from a
+// Weiyun browser session (the path most users will take long-term).
+const emptyRegistryHint = `Registry is empty.
+
+To register lanes, you have two options:
+
+  1. Use the bundled examples (NANSHA/SHENZHEN → JEDDAH, SOKHNA, KARACHI,
+     JEBEL ALI, NHAVA SHEVA, DJIBOUTI — 7 South-China → Red Sea / Mideast /
+     India-Pak lanes):
+        schedule-pp-cli routes seed
+
+  2. Register your own lanes from Weiyun:
+        Visit https://www.weiyun001.com, search a lane, copy the URL, then:
+        schedule-pp-cli routes add MY-LANE '<paste URL>' --pol POL --pod POD
+`
+
 func newRoutesCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "routes",
@@ -40,21 +58,23 @@ func newRoutesCmd(flags *rootFlags) *cobra.Command {
 that Weiyun returns when you search the lane in your browser. Once a lane is
 registered, all schedule commands accept the alias instead of the encrypted URL.
 
-The registry is seeded with 7 representative lanes on first use; add more
-with 'routes add' as you discover them.`,
+The registry is empty by default. Run 'routes seed' to load 7 example
+South-China → Red Sea / Mideast / India-Pak lanes, or 'routes add' to
+register your own from a Weiyun browser session.`,
 	}
 	cmd.AddCommand(newRoutesListCmd(flags))
 	cmd.AddCommand(newRoutesAddCmd(flags))
 	cmd.AddCommand(newRoutesRemoveCmd(flags))
 	cmd.AddCommand(newRoutesPathCmd(flags))
+	cmd.AddCommand(newRoutesSeedCmd(flags))
 	return cmd
 }
 
 func newRoutesListCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List all registered lanes.",
-		Example: "  schedule-pp-cli routes list --json",
+		Use:         "list",
+		Short:       "List all registered lanes.",
+		Example:     "  schedule-pp-cli routes list --json",
 		Annotations: map[string]string{"mcp:read-only": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if dryRunOK(flags) {
@@ -64,10 +84,10 @@ func newRoutesListCmd(flags *rootFlags) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if added := s.Seed(); added > 0 {
-				_ = s.Save()
-			}
 			rows := s.List()
+			if len(rows) == 0 {
+				fmt.Fprint(cmd.ErrOrStderr(), emptyRegistryHint)
+			}
 			out := make([]map[string]any, 0, len(rows))
 			for _, r := range rows {
 				out = append(out, map[string]any{"name": r.Name, "pol": r.POL, "pod": r.POD, "url": r.URL, "note": r.Note})
@@ -76,6 +96,54 @@ func newRoutesListCmd(flags *rootFlags) *cobra.Command {
 		},
 	}
 	return cmd
+}
+
+func newRoutesSeedCmd(flags *rootFlags) *cobra.Command {
+	return &cobra.Command{
+		Use:   "seed",
+		Short: "Load the 7 bundled example South-China → Red Sea / Mideast / India-Pak lanes.",
+		Long: `Inserts 7 example lanes into the registry if it is currently empty.
+
+The lanes are: NS-JEDDAH, NS-SOKHNA, NS-KARACHI, NS-JEBELALI, NS-NHAVASHEVA,
+NS-DJIBOUTI, SZ-DJIBOUTI (Nansha/Shenzhen origins).
+
+These are example data captured during v0.1 build. If you serve different
+regions, skip 'seed' and use 'routes add' instead. Once seeded, individual
+lanes can be removed with 'routes remove'.`,
+		Example:     "  schedule-pp-cli routes seed",
+		Annotations: map[string]string{"mcp:read-only": "false"},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if dryRunOK(flags) {
+				return nil
+			}
+			s, err := registry.Open("")
+			if err != nil {
+				return err
+			}
+			added := s.Seed()
+			if added == 0 {
+				return fmt.Errorf("registry already has %d routes; seed only runs against an empty registry. Use 'routes add' to add more, or remove existing routes first", len(s.List()))
+			}
+			if err := s.Save(); err != nil {
+				return err
+			}
+			return printJSONFiltered(cmd.OutOrStdout(), map[string]any{
+				"seeded": added,
+				"path":   s.Path(),
+				"routes": laneNamesFromStore(s),
+				"note":   "These are example South-China → Red Sea / Mideast / India-Pak lanes. Use 'routes remove' to drop ones you don't serve, or 'routes add' to register your own.",
+			}, flags)
+		},
+	}
+}
+
+func laneNamesFromStore(s *registry.Store) []string {
+	rows := s.List()
+	out := make([]string, 0, len(rows))
+	for _, r := range rows {
+		out = append(out, r.Name)
+	}
+	return out
 }
 
 func newRoutesAddCmd(flags *rootFlags) *cobra.Command {
@@ -188,9 +256,6 @@ upserts each lane's snapshot into the local store keyed by alias.`,
 			if err != nil {
 				return err
 			}
-			if added := s.Seed(); added > 0 {
-				_ = s.Save()
-			}
 			targets := s.List()
 			if route != "" {
 				r := s.Get(route)
@@ -198,6 +263,9 @@ upserts each lane's snapshot into the local store keyed by alias.`,
 					return routeNotInRegistryError(route, s)
 				}
 				targets = []registry.Route{*r}
+			} else if len(targets) == 0 {
+				fmt.Fprint(cmd.ErrOrStderr(), emptyRegistryHint)
+				return printJSONFiltered(cmd.OutOrStdout(), map[string]any{"pulled": 0, "results": []map[string]any{}}, flags)
 			}
 			db, err := openLaneStore(cmd.Context())
 			if err != nil {
@@ -262,16 +330,35 @@ func fetchAndScrape(ctx context.Context, url string) (*scrape.PageData, error) {
 }
 
 func routeNotInRegistryError(name string, s *registry.Store) error {
-	return fmt.Errorf(`route %q not in registry.
+	count := len(s.List())
+	if count == 0 {
+		return fmt.Errorf(`route %q not in registry — registry is currently empty.
+
+To populate it, you have two options:
+
+  1. Use the bundled examples (NS-JEDDAH, NS-SOKHNA, NS-KARACHI, NS-JEBELALI,
+     NS-NHAVASHEVA, NS-DJIBOUTI, SZ-DJIBOUTI):
+        schedule-pp-cli routes seed
+
+  2. Register %q from a Weiyun browser session (~30 seconds):
+        a. Open https://www.weiyun001.com in Chrome (logged in)
+        b. Search the lane (e.g. NANSHA -> JEDDAH)
+        c. Copy the URL from the address bar
+        d. Run:
+           schedule-pp-cli routes add %s '<paste URL>' --pol POL --pod POD
+
+Registry: %s`, name, name, name, s.Path())
+	}
+	return fmt.Errorf(`route %q not in registry (%d other route(s) registered — see 'routes list').
 
 To add it (one-time, ~30 seconds):
   1. Open https://www.weiyun001.com in Chrome (logged in)
   2. Search the lane (e.g. NANSHA -> JEDDAH)
   3. Copy the URL from the address bar
   4. Run:
-     schedule-pp-cli routes add %s '<paste URL here>' --pol POL --pod POD
+     schedule-pp-cli routes add %s '<paste URL>' --pol POL --pod POD
 
-Registry: %s`, name, name, s.Path())
+Registry: %s`, name, count, name, s.Path())
 }
 
 // ---------- query ----------
@@ -428,9 +515,6 @@ func loadLane(ctx context.Context, name string) (*laneSnapshot, error) {
 	s, err := registry.Open("")
 	if err != nil {
 		return nil, err
-	}
-	if added := s.Seed(); added > 0 {
-		_ = s.Save()
 	}
 	r := s.Get(name)
 	if r == nil {

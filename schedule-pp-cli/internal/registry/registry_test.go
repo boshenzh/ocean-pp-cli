@@ -3,10 +3,11 @@ package registry
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
-func TestSeedDefaults(t *testing.T) {
+func TestSeedExamples(t *testing.T) {
 	dir := t.TempDir()
 	s, err := Open(filepath.Join(dir, "routes.json"))
 	if err != nil {
@@ -14,7 +15,7 @@ func TestSeedDefaults(t *testing.T) {
 	}
 	added := s.Seed()
 	if added == 0 {
-		t.Fatal("seed should add default routes on empty registry")
+		t.Fatal("seed should add example routes on empty registry")
 	}
 	if len(s.List()) != 7 {
 		t.Errorf("seeded list count = %d, want 7", len(s.List()))
@@ -22,6 +23,24 @@ func TestSeedDefaults(t *testing.T) {
 	// Idempotent: second seed is a no-op.
 	if s.Seed() != 0 {
 		t.Error("seed should be idempotent on non-empty registry")
+	}
+}
+
+func TestExampleRoutesShape(t *testing.T) {
+	rs := ExampleRoutes()
+	if len(rs) != 7 {
+		t.Fatalf("ExampleRoutes count = %d, want 7", len(rs))
+	}
+	for _, r := range rs {
+		if r.Name == "" {
+			t.Errorf("example route missing name: %+v", r)
+		}
+		if r.POL == "" || r.POD == "" {
+			t.Errorf("example route %q missing POL/POD", r.Name)
+		}
+		if !strings.Contains(r.URL, "/routePort?") {
+			t.Errorf("example route %q has non-routePort URL: %s", r.Name, r.URL)
+		}
 	}
 }
 

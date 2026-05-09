@@ -118,22 +118,30 @@ func (s *Store) Remove(name string) bool {
 	return false
 }
 
-// Seed registers the default 7 representative lanes if the registry is empty.
+// Seed inserts ExampleRoutes() into the registry if it is currently empty.
 // Returns the number of routes added.
+//
+// As of v0.2 this is no longer called automatically — it is invoked only by
+// the explicit `routes seed` command. New users start with an empty registry
+// and either run `routes seed` to load the bundled examples or `routes add`
+// to register their own lanes.
 func (s *Store) Seed() int {
 	if len(s.data.Routes) > 0 {
 		return 0
 	}
-	for _, r := range DefaultRoutes() {
+	examples := ExampleRoutes()
+	for _, r := range examples {
 		_ = s.Add(r)
 	}
-	return len(DefaultRoutes())
+	return len(examples)
 }
 
-// DefaultRoutes returns the 7 representative lanes captured during v0.1 build.
-// Each URL is stable for the (POL, POD) pair — the encrypted port IDs are
-// deterministic across browser sessions.
-func DefaultRoutes() []Route {
+// ExampleRoutes returns 7 example South-China → Red Sea / Mideast / India-Pak
+// lanes captured during v0.1 build. They are bundled as starter content for
+// users serving these regions; they are not auto-applied. Each URL is stable
+// for the (POL, POD) pair — Weiyun's encrypted port IDs are deterministic
+// across browser sessions, so these URLs continue to work for any user.
+func ExampleRoutes() []Route {
 	return []Route{
 		{Name: "NS-JEDDAH", POL: "NANSHA", POD: "JEDDAH", URL: "https://www.weiyun001.com/routePort?st=huvKGL%252B7Fm4wTC3ZfIhHgw%253D%253D&de=A8b%252BKvd%252FrH3knmwPYJlW9A%253D%253D&rg=Nfupi97Q7g5%252BSThhckCGtg%253D%253D&rt=B8CCxPgTyTKHS6UWEi7E0Q%253D%253D&ap=E414n7wrClEOxW9UQ%252FVHHw%253D%253D&from="},
 		{Name: "NS-SOKHNA", POL: "NANSHA", POD: "SOKHNA", URL: "https://www.weiyun001.com/routePort?st=huvKGL%252B7Fm4wTC3ZfIhHgw%253D%253D&de=p980kImhxnwCsgPmmr5MAw%253D%253D&rg=Nfupi97Q7g5%252BSThhckCGtg%253D%253D&rt=B8CCxPgTyTKHS6UWEi7E0Q%253D%253D&ap=E414n7wrClEOxW9UQ%252FVHHw%253D%253D&from="},

@@ -127,7 +127,10 @@ schedule-pp-cli carriers --start-port-code CNNSA --json
 schedule-pp-cli fleet-routes --start-port-code CNNSA --carrier MAERSK --json
 schedule-pp-cli carrier-services --port-code CNNSA --carrier-code CMA --json
 
-# Registry layer: ships with 7 representative lanes seeded; `routes list` to see them.
+# Registry layer: starts empty. Run `routes seed` to load 7 example
+# South-China → Red Sea / Mideast / India-Pak lanes, or skip and use
+# `routes add` to register your own.
+schedule-pp-cli routes seed
 schedule-pp-cli routes list --json
 
 # Add a new lane after capturing the routePort URL once in your browser.
@@ -222,7 +225,7 @@ Source: `https://comtradeapi.un.org/public/v1/preview/C/A/HS` plus the Reporters
 
 Container shipping schedule intelligence. The API layer wraps Weiyun's four public endpoints (port catalog, carriers per port, fleet routes per carrier, continent-grouped service map) — useful for prospecting and lane discovery. The Registry layer adds per-week sailing data (vessel name, voyage, ETD, capacity, flag) for lanes the user has registered, scraped from `/routePort` HTML.
 
-Source: `https://wywapi.weiyun001.com/api/` (port/carrier APIs) and `https://www.weiyun001.com/routePort?...` (per-lane HTML). Auto-seeds 7 representative lanes on first use covering Red Sea, Mideast, India-Pak, and East Africa.
+Source: `https://wywapi.weiyun001.com/api/` (port/carrier APIs) and `https://www.weiyun001.com/routePort?...` (per-lane HTML). The registry starts empty; run `routes seed` to load 7 bundled example lanes (NANSHA/SHENZHEN → JEDDAH, SOKHNA, KARACHI, JEBEL ALI, NHAVA SHEVA, DJIBOUTI), or use `routes add` to register your own from a Weiyun browser session.
 
 ### Roadmap
 
