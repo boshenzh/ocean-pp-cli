@@ -15,7 +15,23 @@ The CLIs are independent Go modules in this repo. They share a workspace (`go.wo
 
 ## Install
 
-Each CLI is a standalone Go module. With Go 1.26.3+:
+### Pre-built binaries (recommended)
+
+Download the archive for your OS/arch from the [latest release](https://github.com/boshenzh/ocean-pp-cli/releases/latest) and extract anywhere on `$PATH`. Each release ships three independent tarballs (`freightindex-pp-cli_*`, `schedule-pp-cli_*`, `webprofile-pp-cli_*`) for `linux/amd64`, `linux/arm64`, `darwin/amd64`, `darwin/arm64`.
+
+```bash
+# Example: macOS arm64
+VERSION=0.1.0
+ARCH=darwin_arm64
+for cli in freightindex-pp-cli schedule-pp-cli webprofile-pp-cli; do
+  curl -sSL "https://github.com/boshenzh/ocean-pp-cli/releases/download/v${VERSION}/${cli}_${VERSION}_${ARCH}.tar.gz" \
+    | tar xz -C /usr/local/bin
+done
+```
+
+### `go install` (Go 1.26.3+)
+
+Each CLI is a standalone Go module:
 
 ```bash
 go install github.com/boshenzh/ocean-pp-cli/freightindex-pp-cli/cmd/freightindex-pp-cli@latest
@@ -23,23 +39,30 @@ go install github.com/boshenzh/ocean-pp-cli/webprofile-pp-cli/cmd/webprofile-pp-
 go install github.com/boshenzh/ocean-pp-cli/schedule-pp-cli/cmd/schedule-pp-cli@latest
 ```
 
-Verify each:
-
-```bash
-freightindex-pp-cli --version
-webprofile-pp-cli --version
-schedule-pp-cli --version
-```
-
 ### Build from source
 
 ```bash
 git clone git@github.com:boshenzh/ocean-pp-cli.git
 cd ocean-pp-cli
-go build ./...
+for m in freightindex-pp-cli schedule-pp-cli webprofile-pp-cli; do
+  (cd "$m" && go install ./cmd/...)
+done
 ```
 
 The repo is a Go workspace (`go.work`) registering each CLI as a member module. `go test ./...` from each module's directory runs that module's tests.
+
+### Verify
+
+```bash
+freightindex-pp-cli --version
+webprofile-pp-cli --version
+schedule-pp-cli --version
+
+# Each CLI ships a doctor command that confirms config + connectivity
+freightindex-pp-cli doctor
+webprofile-pp-cli doctor
+schedule-pp-cli doctor
+```
 
 ## Quick Start
 

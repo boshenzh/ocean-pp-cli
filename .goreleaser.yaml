@@ -1,0 +1,82 @@
+version: 2
+
+project_name: ocean-pp-cli
+
+# Each module has its own go.mod; skip the proxy step (which assumes a single root module).
+gomod:
+  proxy: false
+
+builds:
+  - id: freightindex-pp-cli
+    dir: ./freightindex-pp-cli
+    main: ./cmd/freightindex-pp-cli
+    binary: freightindex-pp-cli
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X github.com/boshenzh/ocean-pp-cli/freightindex-pp-cli/internal/cli.version={{.Version}}
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
+  - id: schedule-pp-cli
+    dir: ./schedule-pp-cli
+    main: ./cmd/schedule-pp-cli
+    binary: schedule-pp-cli
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X github.com/boshenzh/ocean-pp-cli/schedule-pp-cli/internal/cli.version={{.Version}}
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
+  - id: webprofile-pp-cli
+    dir: ./webprofile-pp-cli
+    main: ./cmd/webprofile-pp-cli
+    binary: webprofile-pp-cli
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X github.com/boshenzh/ocean-pp-cli/webprofile-pp-cli/internal/cli.version={{.Version}}
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
+archives:
+  - id: freightindex-pp-cli
+    ids: [freightindex-pp-cli]
+    formats: [tar.gz]
+    name_template: 'freightindex-pp-cli_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+
+  - id: schedule-pp-cli
+    ids: [schedule-pp-cli]
+    formats: [tar.gz]
+    name_template: 'schedule-pp-cli_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+
+  - id: webprofile-pp-cli
+    ids: [webprofile-pp-cli]
+    formats: [tar.gz]
+    name_template: 'webprofile-pp-cli_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  use: github-native
+
+release:
+  draft: false
+  prerelease: auto
+  header: |
+    ## ocean-pp-cli {{ .Version }}
+
+    Three CLIs for ocean-freight forwarders:
+    - `freightindex-pp-cli` — SCFI weekly index analytics
+    - `schedule-pp-cli` — Weiyun ship schedules
+    - `webprofile-pp-cli` — UN Comtrade prospect research
+  footer: |
+    See README.md for usage. Run `<cli> doctor` after install to verify.

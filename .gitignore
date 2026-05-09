@@ -18,6 +18,9 @@ inputs/**/*.cookies
 *.db
 *.db-journal
 
+# GoReleaser output
+dist/
+
 # Editor / OS
 .DS_Store
 .idea/
