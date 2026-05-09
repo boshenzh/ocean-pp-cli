@@ -107,17 +107,3 @@ func TestFitScore(t *testing.T) {
 	}
 }
 
-func TestIsCoveredRoute(t *testing.T) {
-	if IsCoveredRoute("EGY") != 30 {
-		t.Error("EGY should be covered (Egypt - Suez/Sokhna)")
-	}
-	if IsCoveredRoute("egy") != 30 {
-		t.Error("case-insensitive: egy should be covered")
-	}
-	if IsCoveredRoute("USA") != 0 {
-		t.Error("USA is not in our covered portfolio")
-	}
-	if IsCoveredRoute("") != 0 {
-		t.Error("empty should be 0")
-	}
-}

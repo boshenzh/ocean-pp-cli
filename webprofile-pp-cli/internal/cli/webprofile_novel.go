@@ -11,6 +11,7 @@ import (
 
 	"github.com/boshenzh/ocean-pp-cli/webprofile-pp-cli/internal/client"
 	"github.com/boshenzh/ocean-pp-cli/webprofile-pp-cli/internal/comtrade"
+	"github.com/boshenzh/ocean-pp-cli/webprofile-pp-cli/internal/routes"
 	"github.com/boshenzh/ocean-pp-cli/webprofile-pp-cli/internal/store"
 
 	"github.com/spf13/cobra"
@@ -343,10 +344,11 @@ world for the latest year, and combines them into a single 0-100 score:
 
   share component  (0-50): China-share of country's total HS imports
   growth component (0-20): year-over-year growth in imports from China, clamped
-  route component  (0-30): fixed bonus when the country is on a covered lane
+  route component  (0-30): 30 when the country is in your covered-route list, 0 otherwise
 
-The route component is a hardcoded portfolio for v0.1 (Red Sea / Mideast /
-India-Pak); v0.2 reads from rate-store.`,
+The covered-route list is per-user config at ~/.config/webprofile-pp-cli/routes.toml.
+With no routes configured, the route component is 0 (max score 70). Run
+'webprofile-pp-cli routes init <ISO3...>' to set your portfolio.`,
 		Example: `  webprofile-pp-cli fit-score Egypt 8517 --json
   webprofile-pp-cli fit-score IND 6109 --json`,
 		Annotations: map[string]string{"mcp:read-only": "true"},
@@ -388,24 +390,35 @@ India-Pak); v0.2 reads from rate-store.`,
 			if fromCNPrior != nil && fromCNPrior.PrimaryValue > 0 {
 				yoy = ((fromCN.PrimaryValue - fromCNPrior.PrimaryValue) / fromCNPrior.PrimaryValue) * 100
 			}
-			route := comtrade.IsCoveredRoute(country.ReporterCodeIsoAlpha3)
+			routesCfg, _, err := routes.LoadDefault()
+			if err != nil {
+				return fmt.Errorf("load routes config: %w", err)
+			}
+			route := 0.0
+			if routesCfg.IsCovered(country.ReporterCodeIsoAlpha3) {
+				route = 30
+			}
 			score := comtrade.FitScore(fromCN.PrimaryValue, fromWorld.PrimaryValue, yoy, route)
-			return printJSONFiltered(cmd.OutOrStdout(), map[string]any{
+			out := map[string]any{
 				"country": map[string]any{
 					"code": country.ReporterCode,
 					"iso3": country.ReporterCodeIsoAlpha3,
 					"name": country.ReporterDesc,
 				},
-				"hs":                  hs,
-				"latest_year":         endYear,
-				"prior_year":          priorYear,
-				"import_from_cn":      fromCN.PrimaryValue,
-				"import_from_world":   fromWorld.PrimaryValue,
-				"yoy_growth_pct":      yoy,
-				"route_covered":       route > 0,
-				"route_bonus":         route,
-				"fit_score":           score,
-			}, flags)
+				"hs":                hs,
+				"latest_year":       endYear,
+				"prior_year":        priorYear,
+				"import_from_cn":    fromCN.PrimaryValue,
+				"import_from_world": fromWorld.PrimaryValue,
+				"yoy_growth_pct":    yoy,
+				"route_covered":     route > 0,
+				"route_bonus":       route,
+				"fit_score":         score,
+			}
+			if routesCfg.IsEmpty() {
+				out["route_config_warning"] = "No covered routes configured. route_bonus is 0; max fit_score is 70. Run 'webprofile-pp-cli routes init <ISO3...>' to set your portfolio."
+			}
+			return printJSONFiltered(cmd.OutOrStdout(), out, flags)
 		},
 	}
 	return cmd
@@ -418,4 +431,5 @@ func registerNovelCommands(rootCmd *cobra.Command, flags *rootFlags) {
 	rootCmd.AddCommand(newHSSearchCmd(flags))
 	rootCmd.AddCommand(newWhoImportsCmd(flags))
 	rootCmd.AddCommand(newFitScoreCmd(flags))
+	rootCmd.AddCommand(newRoutesCmd(flags))
 }

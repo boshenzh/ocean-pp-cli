@@ -229,32 +229,3 @@ func FitScore(importValueUSD, totalImportsUSD, yoyGrowthPct, routeBonus float64)
 	return score
 }
 
-// IsCoveredRoute reports whether an ISO3 country code is in our headline
-// lane portfolio. Hardcoded for v0.1; reads from rate-store in v0.2.
-var coveredISO3 = map[string]bool{
-	"EGY": true, // Egypt (Suez/Sokhna/Alexandria)
-	"SAU": true, // Saudi Arabia (Jeddah/Dammam)
-	"ARE": true, // UAE (Jebel Ali/Hamad)
-	"IND": true, // India (Nhava Sheva)
-	"PAK": true, // Pakistan (Karachi)
-	"DJI": true, // Djibouti
-	"YEM": true, // Yemen (Aden)
-	"QAT": true, // Qatar
-	"KWT": true, // Kuwait
-	"OMN": true, // Oman
-	"BHR": true, // Bahrain
-	"JOR": true, // Jordan (Aqaba)
-	"IRQ": true, // Iraq
-	"IRN": true, // Iran
-	"LBN": true, // Lebanon
-	"SYR": true, // Syria
-}
-
-// IsCoveredRoute reports whether the given ISO3 country code is on a route
-// the user already covers. Returns 30 (full route bonus) when true, 0 otherwise.
-func IsCoveredRoute(iso3 string) float64 {
-	if coveredISO3[strings.ToUpper(strings.TrimSpace(iso3))] {
-		return 30
-	}
-	return 0
-}
