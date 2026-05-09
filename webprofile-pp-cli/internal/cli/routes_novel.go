@@ -2,9 +2,11 @@
 package cli
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/boshenzh/ocean-pp-cli/webprofile-pp-cli/internal/routes"
@@ -29,6 +31,7 @@ hand-edit; each subcommand validates and normalizes entries.`,
 	cmd.AddCommand(newRoutesResetCmd(flags))
 	cmd.AddCommand(newRoutesPathCmd(flags))
 	cmd.AddCommand(newRoutesEditCmd(flags))
+	cmd.AddCommand(newRoutesImportFromScheduleCmd(flags))
 	return cmd
 }
 
@@ -258,4 +261,111 @@ func newRoutesEditCmd(flags *rootFlags) *cobra.Command {
 			return nil
 		},
 	}
+}
+
+// scheduleRegistryShape mirrors schedule-pp-cli's registry.json on disk.
+// Only the fields we consume here are declared; the registry's other fields
+// are ignored.
+type scheduleRegistryShape struct {
+	Routes []struct {
+		Name string `json:"name"`
+		POL  string `json:"pol"`
+		POD  string `json:"pod"`
+	} `json:"routes"`
+}
+
+func defaultScheduleRegistryPath() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(home, ".config", "schedule-pp-cli", "routes.json"), nil
+}
+
+func newRoutesImportFromScheduleCmd(flags *rootFlags) *cobra.Command {
+	var registryPath string
+	cmd := &cobra.Command{
+		Use:   "import-from-schedule",
+		Short: "Add covered routes by reading schedule-pp-cli's registry and resolving POD ports to ISO3 countries.",
+		Long: `Reads schedule-pp-cli's local registry (default
+~/.config/schedule-pp-cli/routes.json), maps each lane's POD port to an ISO3
+country code via a built-in lookup table, and adds the resulting countries to
+the webprofile covered-route list.
+
+Ports the table doesn't recognize are reported back to the caller; you can
+extend coverage by adding the country manually with 'routes add'.`,
+		Example: `  # Default: read schedule-pp-cli's standard registry path
+  webprofile-pp-cli routes import-from-schedule
+
+  # Custom registry path
+  webprofile-pp-cli routes import-from-schedule --registry-path /tmp/routes.json`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			path := registryPath
+			if path == "" {
+				p, err := defaultScheduleRegistryPath()
+				if err != nil {
+					return err
+				}
+				path = p
+			}
+			data, err := os.ReadFile(path)
+			if err != nil {
+				if os.IsNotExist(err) {
+					return fmt.Errorf("schedule-pp-cli registry not found at %s.\n\nFix one of these:\n  1. Install schedule-pp-cli and run 'schedule-pp-cli routes seed' (loads 7 example lanes)\n  2. Or run 'schedule-pp-cli routes add ...' to register your own lanes\n  3. Or pass --registry-path to point at an existing registry", path)
+				}
+				return fmt.Errorf("read %s: %w", path, err)
+			}
+			var sched scheduleRegistryShape
+			if err := json.Unmarshal(data, &sched); err != nil {
+				return fmt.Errorf("parse %s: %w", path, err)
+			}
+			cfg, cfgPath, err := routes.LoadDefault()
+			if err != nil {
+				return err
+			}
+			type entry struct {
+				Lane string `json:"lane"`
+				POD  string `json:"pod"`
+				ISO3 string `json:"iso3"`
+			}
+			var added, alreadyPresent []entry
+			var unknown []map[string]string
+			for _, r := range sched.Routes {
+				iso3, ok := routes.PortToISO3(r.POD)
+				if !ok {
+					unknown = append(unknown, map[string]string{"lane": r.Name, "pod": r.POD})
+					continue
+				}
+				wasAdded, addErr := cfg.Add(iso3)
+				if addErr != nil {
+					return fmt.Errorf("add %s (from %s): %w", iso3, r.POD, addErr)
+				}
+				e := entry{Lane: r.Name, POD: r.POD, ISO3: iso3}
+				if wasAdded {
+					added = append(added, e)
+				} else {
+					alreadyPresent = append(alreadyPresent, e)
+				}
+			}
+			if err := cfg.Save(cfgPath); err != nil {
+				return err
+			}
+			result := map[string]any{
+				"registry_path":      path,
+				"lanes_in_schedule":  len(sched.Routes),
+				"added":              added,
+				"already_present":    alreadyPresent,
+				"unknown_ports":      unknown,
+				"covered_total":      len(cfg.Routes.Covered),
+				"webprofile_config":  cfgPath,
+			}
+			if len(unknown) > 0 && !flags.quiet {
+				fmt.Fprintf(cmd.ErrOrStderr(), "Warning: %d port(s) not in built-in lookup. Add manually with 'routes add <ISO3>' if you serve them.\n", len(unknown))
+			}
+			return printJSONFiltered(cmd.OutOrStdout(), result, flags)
+		},
+	}
+	cmd.Flags().StringVar(&registryPath, "registry-path", "",
+		"Path to schedule-pp-cli registry.json (default: ~/.config/schedule-pp-cli/routes.json)")
+	return cmd
 }
