@@ -69,23 +69,10 @@ schedule-pp-cli doctor
 Tell your OpenClaw agent (copy this):
 
 ```
-Install the ocean-pp-cli plugin from https://github.com/boshenzh/ocean-pp-cli.
-It bundles three skills — pp-freightindex, pp-schedule, pp-webprofile — that
-wrap the SCFI weekly freight index, Weiyun shipping schedules, and UN Comtrade
-prospect-research CLIs. Each skill's frontmatter declares how its required CLI
-binary installs via `go install`. After install, add `ocean-pp-cli` to
-plugins.allow so loads are explicit, then run `freightindex-pp-cli --version`,
-`schedule-pp-cli --version`, and `webprofile-pp-cli --version` to verify.
+Install the ocean-pp-cli plugin from https://github.com/boshenzh/ocean-pp-cli. Each bundled skill defines how its required CLI installs.
 ```
 
-Or install yourself:
-
-```bash
-openclaw plugins install --marketplace boshenzh/ocean-pp-cli
-openclaw config set plugins.allow '["ocean-pp-cli"]'
-```
-
-See [For Agents → Layer 2](#layer-2-skillmd-markdown) for the local-clone (`-l`) form, the full GitHub URL form, and what each skill exposes.
+See [For Agents → Layer 2](#layer-2-skillmd-markdown) for the manual two-line install and the local-clone form.
 
 ## Quick Start
 
