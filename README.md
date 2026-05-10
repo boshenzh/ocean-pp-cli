@@ -273,14 +273,26 @@ freightindex-pp-cli digest --lane 'Persian Gulf' --agent
 Each module ships a `SKILL.md` with trigger phrases, command recipes, output schemas, and error codes. Hosts that read markdown skills (Claude Code, OpenClaw, others) can be pointed at this repo as a plugin:
 
 ```bash
-# OpenClaw — install the whole repo as a plugin (path install)
-openclaw plugins install ~/Projects/ocean-pp-cli
+# OpenClaw — install from GitHub
+openclaw plugins install --marketplace boshenzh/ocean-pp-cli
+# equivalent: openclaw plugins install --marketplace https://github.com/boshenzh/ocean-pp-cli
+
+# OpenClaw — install from a local clone (development)
+openclaw plugins install -l ~/Projects/ocean-pp-cli   # -l symlinks instead of copying
 
 # Claude Code — load skills from a directory
 claude --plugin-dir ~/Projects/ocean-pp-cli
 ```
 
-The repo root carries `.claude-plugin/plugin.json` (Claude-compatible) and `skills/pp-{freightindex,schedule,webprofile}/SKILL.md` symlinks for plugin auto-discovery.
+After install, OpenClaw warns if the plugin isn't on the trust list:
+`plugins.allow is empty; discovered non-bundled plugins may auto-load: ocean-pp-cli`. Add it explicitly so loads are intentional, not incidental:
+
+```bash
+openclaw config set plugins.allow '["ocean-pp-cli"]'
+# Config lives at ~/.openclaw/openclaw.json — see `openclaw config file`.
+```
+
+The repo root carries `.claude-plugin/plugin.json` (Claude-compatible) and `skills/pp-{freightindex,schedule,webprofile}/SKILL.md` for plugin auto-discovery. The positional form of `openclaw plugins install <arg>` only accepts paths/archives/npm specs/marketplace names — git URLs must go through `--marketplace`.
 
 ### Layer 3: MCP servers (typed RPC)
 
