@@ -69,7 +69,7 @@ schedule-pp-cli doctor
 Tell your OpenClaw agent (copy this):
 
 ```
-Install the ocean-pp-cli plugin from https://github.com/boshenzh/ocean-pp-cli. Each bundled skill defines how its required CLI installs.
+Install the ocean-pp-cli plugin: clone https://github.com/boshenzh/ocean-pp-cli, then run `openclaw plugins install -l <clone-path>`. Each bundled skill defines how its required CLI installs.
 ```
 
 See [For Agents → Layer 2](#layer-2-skillmd-markdown) for the manual two-line install and the local-clone form.
@@ -283,15 +283,12 @@ freightindex-pp-cli digest --lane 'Persian Gulf' --agent
 Each module ships a `SKILL.md` with trigger phrases, command recipes, output schemas, and error codes. Hosts that read markdown skills (Claude Code, OpenClaw, others) can be pointed at this repo as a plugin:
 
 ```bash
-# OpenClaw — install from GitHub
-openclaw plugins install --marketplace boshenzh/ocean-pp-cli
-# equivalent: openclaw plugins install --marketplace https://github.com/boshenzh/ocean-pp-cli
-
-# OpenClaw — install from a local clone (development)
-openclaw plugins install -l ~/Projects/ocean-pp-cli   # -l symlinks instead of copying
+# OpenClaw — clone the repo, then install from the local path
+git clone https://github.com/boshenzh/ocean-pp-cli.git
+openclaw plugins install -l ./ocean-pp-cli   # -l symlinks instead of copying
 
 # Claude Code — load skills from a directory
-claude --plugin-dir ~/Projects/ocean-pp-cli
+claude --plugin-dir ./ocean-pp-cli
 ```
 
 After install, OpenClaw warns if the plugin isn't on the trust list:
@@ -302,7 +299,7 @@ openclaw config set plugins.allow '["ocean-pp-cli"]'
 # Config lives at ~/.openclaw/openclaw.json — see `openclaw config file`.
 ```
 
-The repo root carries `.claude-plugin/plugin.json` (Claude-compatible) and `skills/pp-{freightindex,schedule,webprofile}/SKILL.md` for plugin auto-discovery. The positional form of `openclaw plugins install <arg>` only accepts paths/archives/npm specs/marketplace names — git URLs must go through `--marketplace`.
+The repo root carries `.claude-plugin/plugin.json` (Claude-compatible) and `skills/pp-{freightindex,schedule,webprofile}/SKILL.md` for plugin auto-discovery. Install with `openclaw plugins install -l <local-path>` — clone the repo first, then point `-l` at the clone.
 
 ### Layer 3: MCP servers (typed RPC)
 
